@@ -15,7 +15,7 @@ The heap consists of blocks, following this architecture : Block Header - Payloa
 
 ---
 
- USING FIRST-FIT SOLELY ( 10,000 iterations with 10,000 operations )
+ FIRST-FIT ( 10,000 iterations with 10,000 operations )
  ---
 
  
@@ -26,7 +26,7 @@ The heap consists of blocks, following this architecture : Block Header - Payloa
 
 
  
- USING BEST-FIT SOLELY ( 10,000 iterations with 1,000 operations ) 
+ BEST-FIT ( 10,000 iterations with 1,000 operations ) 
 ---
  
  Immediate Allocation/Deallocation (Throughput) - 1.6x FASTER than malloc/free
