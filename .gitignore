@@ -2,6 +2,6 @@ build/
 *.o
 *.out
 .DS_Store
-*.vscode
-*allocator.dSYM/Contents
-*allocator 
+.vscode/
+allocator.dSYM/
+allocator
