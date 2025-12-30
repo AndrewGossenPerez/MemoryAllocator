@@ -3,5 +3,5 @@ It allows you to create an RAII-managed heap buffer of certain size in bytes (au
 The standard malloc and free is replaced with alloc and release respectively. 
 
 To do list : 
-First-fit and Best-fit algorithm options ( You decide which to use ) 
-Benchmarking against the standard malloc and free 
+First-fit and Best-fit algorithm options ( You decide which to use ),
+Benchmarking against the standard malloc and free, thread-safety 
