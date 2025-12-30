@@ -14,16 +14,17 @@ void* Heap::alloc(std::size_t bytes,AllocationPriority priorityType){
         
         // Apply first fit approach, find the first block with a sufficent size 
         // Best case O(1)
-
         current=m_freeHead;
         while (current && current->size<requiredBytes){ // Go through each block in the free list
             current=current->nextFree;
         }
         
     } else if (priorityType==AllocationPriority::BestFit){
-        // Always O(n)
+
+        // Always going to be O(n) since it will have to search through entire free list 
+        
         for (Block* b=m_freeHead;b;b=b->nextFree){
-            // GO through each block in the free list 
+            // Go through each block in the free list 
             if (b->size>=requiredBytes){
                 if (!current || current->size > b->size) current=b;
             }
