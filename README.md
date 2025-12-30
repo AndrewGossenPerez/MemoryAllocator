@@ -1,6 +1,8 @@
 
 <img width="200" height="200" alt="MemIcon" src="https://github.com/user-attachments/assets/2585629f-e415-4fc3-a329-63f252981cb1" />
 
+(AndrewG MemoryAllocator)
+
 **This project implements an OS-backed memory allocator that creates a private heap using mmap. It is an independent learning project I carried out to better understand the mechanisms behind dynamic memory allocation**
 ---
 
