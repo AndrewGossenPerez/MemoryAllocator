@@ -1,7 +1,6 @@
 #include "include/heap.hpp"
 #include <cstddef>
 
-
 void* Heap::alloc(std::size_t bytes,AllocationPriority priorityType){
 
     // Allocates bytes amount of the heap, auto aligned       
@@ -9,49 +8,62 @@ void* Heap::alloc(std::size_t bytes,AllocationPriority priorityType){
     if (bytes == 0 || !m_base) return nullptr;
     std::size_t requiredBytes= getSize(bytes);
 
+    Block* current=nullptr;
+
     if (priorityType==AllocationPriority::FirstFit){
         
         // Apply first fit approach, find the first block with a sufficent size 
+        // Best case O(1)
 
-        Block* current=m_freeHead;
+        current=m_freeHead;
         while (current && current->size<requiredBytes){ // Go through each block in the free list
             current=current->nextFree;
         }
         
-        if (!current) return nullptr; // No sufficent block found, i.e. full heap 
-
-        removeFree(current); // Prepare to allocate 
-
-        // Split the block if possible 
-        const std::size_t rem =current->size-requiredBytes;
-
-        if (rem>=minBlockSize()){ // Remainding space is sufficent to create a new block 
-
-            auto* remainder = reinterpret_cast<Block*>( // Use byte arithmetic to go to the required boundary of the block
-                // Split up any memory after this point into a seperate block  
-                reinterpret_cast<std::uint8_t*>(current) + requiredBytes
-            ); 
-
-            current->size=requiredBytes;
-            remainder->size=rem;
-            remainder->allocated=false;
-            remainder->prevFree=nullptr;
-            remainder->nextFree=nullptr;
-
-            writeFooter(remainder); // Mark the end of the new freely made block
-            pushFree(remainder);
-
-        } else { 
-            // Otherwise can't split so full block will be allocated, which is already done 
-        } 
-
-        current->allocated = true;
-        writeFooter(current); // Mark end of the allocated block 
-        return reinterpret_cast<std::uint8_t*>(current) + sizeof(Block); // return pointer to the payload
+    } else if (priorityType==AllocationPriority::BestFit){
+        // Always O(n)
+        for (Block* b=m_freeHead;b;b=b->nextFree){
+            // GO through each block in the free list 
+            if (b->size>=requiredBytes){
+                if (!current || current->size > b->size) current=b;
+            }
+        }
 
     }
 
-    return nullptr; 
+    if (!current){ // No sufficent block found, i.e. full heap 
+        std::printf("alloc() Error: No sufficent space in the heap\n"); 
+        return nullptr;
+    } 
+
+    removeFree(current); // Prepare to allocate 
+
+    // Split the block if possible 
+    const std::size_t rem =current->size-requiredBytes;
+
+    if (rem>=minBlockSize()){ // Remainding space is sufficent to create a new block 
+
+        auto* remainder = reinterpret_cast<Block*>( // Use byte arithmetic to go to the required boundary of the block
+            // Split up any memory after this point into a seperate block  
+            reinterpret_cast<std::uint8_t*>(current) + requiredBytes
+        ); 
+
+        current->size=requiredBytes;
+        remainder->size=rem;
+        remainder->allocated=false;
+        remainder->prevFree=nullptr;
+        remainder->nextFree=nullptr;
+
+        writeFooter(remainder); // Mark the end of the new freely made block
+        pushFree(remainder);
+
+    } else { 
+        // Otherwise can't split so full block will be allocated, which is already done 
+    } 
+
+    current->allocated = true;
+    writeFooter(current); // Mark end of the allocated block 
+    return reinterpret_cast<std::uint8_t*>(current) + sizeof(Block); // return pointer to the payload
 
 };
 
