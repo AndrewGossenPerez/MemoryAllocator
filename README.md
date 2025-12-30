@@ -7,7 +7,7 @@ Benchmark results against the standard malloc/free functions are as follows:
  Immediate Allocation/Deallocation (Throughput) - 1.719x FASTER than malloc/free
  Allocation/Deallocation with fragmentation present - 2.2x FASTER than malloc/free 
 
- USING BEST-FIT SOLELY ( 
+ USING BEST-FIT SOLELY ( 10,000 iterations with 1,000 operations ) 
  Immediate Allocation/Deallocation (Throughput) - 1.6x FASTER than malloc/free
  Allocation/Deallocation with fragmentation present - 4.1x SLOWER than malloc/free 
 
