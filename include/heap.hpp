@@ -8,7 +8,8 @@
 #include <cstring>
 #include <sys/mman.h>   
 #include <unistd.h>    
-#include "block.hpp" 
+#include "include/block.hpp" 
+#include "include/priority.hpp"
 
 // ---- Helper functions 
 
@@ -35,8 +36,8 @@ class Heap{
 public:
 
     // Main methods 
-    void* alloc(std::size_t bytes);
-    void free(void* ptr);
+    void* alloc(std::size_t bytes,AllocationPriority priorityType);
+    void release(void* ptr);
 
     explicit Heap(std::size_t bytes){
 

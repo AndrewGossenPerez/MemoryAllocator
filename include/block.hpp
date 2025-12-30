@@ -5,18 +5,18 @@
 #include <cstdint>
 #include <cstdio>
 
-struct Block{
+struct alignas(std::max_align_t) Block{
 
     std::size_t size; // The size of the block 
     // inclusive of the header, payload and the footer 
     bool allocated;
-    // Links in the free list when this block isnt allocated 
+    // Double-linked list used when this block is in the free list i.e. unallocated 
     Block* prevFree;
     Block* nextFree;
 
 };
 
-struct Footer{
+struct alignas(std::max_align_t)  Footer{
     std::size_t size;
 };
 
@@ -35,18 +35,16 @@ static std::size_t alignMax(std::size_t x) {
 }
 
 static std::size_t getSize(std::size_t payloadBytes) {
-    // Returns the net size required for a block with payloadBytes size 
-    payloadBytes=alignMax(payloadBytes); // Again, must align the payLoadbytes 
-    // to avoid unneccesary CPU ticks or UB 
-    return sizeof(Block)+payloadBytes+sizeof(Footer);
+    // REturns net required size for a block with size payloadBytes 
+    payloadBytes = alignMax(payloadBytes);
+    std::size_t total = sizeof(Block) + payloadBytes + sizeof(Footer);
+    return alignMax(total); // important
 }
 
 static Footer* getFooter(Block* b) { // Gets the footer of Block pointer b 
     // Finds footer through pointer arithmetic deducting the header and payload
     return reinterpret_cast<Footer*>(
-        reinterpret_cast<std::uint8_t*>(b)
-        + b->size
-        - sizeof(Footer)
+        reinterpret_cast<std::uint8_t*>(b) + b->size - sizeof(Footer)
     );
 }
 
