@@ -34,12 +34,12 @@ int main() { // Benchmarking
 
     // --- Benchmark setup ---
 
-    constexpr AllocationPriority prioryTesting=AllocationPriority::FirstFit;
-    constexpr int ITERS = 200; // Multiple iterations done to smooth noise 
-    constexpr int N = 1000; // Amount of operations per iteration
+    constexpr AllocationPriority prioryTesting=AllocationPriority::BestFit;
+    constexpr int ITERS = 10000; // Multiple iterations done to smooth noise 
+    constexpr int N = 10000; // Amount of operations per iteration
     constexpr std::size_t MIN_SZ = 8; // Smallest payload size 
     constexpr std::size_t MAX_SZ = 256; // Largest payload size 
-    constexpr unsigned SEED = 12345;
+    constexpr unsigned SEED = 67;
 
     std::mt19937 rng(SEED);
     std::uniform_int_distribution<std::size_t> dist(MIN_SZ, MAX_SZ);

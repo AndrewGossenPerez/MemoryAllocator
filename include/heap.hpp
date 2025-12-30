@@ -9,7 +9,12 @@
 #include <sys/mman.h>   
 #include <unistd.h>    
 #include "include/block.hpp" 
-#include "include/priority.hpp"
+
+// Enum for choosing which allocation priority to run an allocation with 
+enum AllocationPriority{
+    FirstFit,BestFit
+};
+
 
 // ---- Helper functions 
 
@@ -23,10 +28,6 @@ static std::size_t pageSize() {
 static std::size_t align(std::size_t x, std::size_t a) {
     // Round x to the nearest multiple of a 
     return (x + (a - 1)) & ~(a - 1);
-}
-
-static std::uintptr_t alignPtr(std::uintptr_t p, std::size_t a) {
-    return (p + (a - 1)) & ~(std::uintptr_t)(a - 1);
 }
 
 // ---- RAII Heap structure 
@@ -81,7 +82,7 @@ public:
 
     };
 
-    ~Heap() { // Free the mapping 
+    ~Heap() { // Free the mapping upon destruction
         if (m_base) {
             ::munmap(m_base, m_size);
         }
@@ -92,8 +93,8 @@ public:
     Heap& operator=(const Heap&) = delete;
 
     Heap(Heap&& other) noexcept : m_size(other.m_size),m_base(other.m_base),
-    m_end(other.m_end),m_freeHead(other.m_freeHead)
-    {
+    m_end(other.m_end),m_freeHead(other.m_freeHead){
+        // Leave the other heap in a valid state 
         other.m_size=0;
         other.m_base=nullptr;
         other.m_end=nullptr;
@@ -101,7 +102,9 @@ public:
     }
 
     Heap& operator=(Heap&& other) noexcept {
-        if (this != &other) {
+
+        if (this != &other) { 
+            // Unmap the current base 
             if (m_base) ::munmap(m_base, m_size);
 
             m_size=other.m_size;
@@ -109,11 +112,14 @@ public:
             m_end=other.m_end;
             m_freeHead=other.m_freeHead;
 
+            // Leave the other heap in a valid state 
             other.m_size=0;
             other.m_base=nullptr;
             other.m_end=nullptr;
             other.m_freeHead=nullptr;
+
         }
+
         return *this;
     }
 
