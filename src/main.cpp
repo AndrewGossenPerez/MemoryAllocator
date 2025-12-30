@@ -36,7 +36,7 @@ int main() { // Benchmarking
 
     constexpr AllocationPriority prioryTesting=AllocationPriority::BestFit;
     constexpr int ITERS = 10000; // Multiple iterations done to smooth noise 
-    constexpr int N = 10000; // Amount of operations per iteration
+    constexpr int N = 1000; // Amount of operations per iteration
     constexpr std::size_t MIN_SZ = 8; // Smallest payload size 
     constexpr std::size_t MAX_SZ = 256; // Largest payload size 
     constexpr unsigned SEED = 67;
