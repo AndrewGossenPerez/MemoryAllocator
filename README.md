@@ -1,7 +1,16 @@
-This is an OS backed memory allocator, using mmap for heap creation. 
-It allows you to create an RAII-managed heap buffer of certain size in bytes (automatically aligned), and manage memory within it.
-The standard malloc and free is replaced with alloc and release respectively. 
+This project implements an OS-backed memory allocator that creates a private heap using mmap. 
+The heap is managed with RAII. The constructor maps the requested heap size (which is rounded up to a page-aligned size), and the destructor unmaps it with munmap.
 
-To do list : 
-First-fit and Best-fit algorithm options ( You decide which to use ),
-Benchmarking against the standard malloc and free, thread-safety 
+Benchmark results against the standard malloc/free functions are as follows:
+
+ USING FIRST-FIT SOLELY ( 10,000 iterations with 10,000 operations )
+ Immediate Allocation/Deallocation (Throughput) - 1.719x FASTER than malloc/free
+ Allocation/Deallocation with fragmentation present - 2.2x FASTER than malloc/free 
+
+ USING BEST-FIT SOLELY ( 
+ Immediate Allocation/Deallocation (Throughput) - 1.6x FASTER than malloc/free
+ Allocation/Deallocation with fragmentation present - 4.1x SLOWER than malloc/free 
+
+
+ 
+
