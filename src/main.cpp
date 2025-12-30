@@ -131,7 +131,7 @@ int main() { // Benchmarking
 
     std::printf("\n-- Ratios (Heap / malloc) --\n");
     std::printf(" -Immediate: %.3fx faster than malloc & free\n", (double)malloc_us/(double)heap_us);
-    std::printf(" -Fragment: %.3fx faster than malloc & free\n", (double)malloc_frag_us/(double)heap_us);
+    std::printf(" -Fragment: %.3fx faster than malloc & free\n", (double)malloc_frag_us/(double)heap_frag_us);
 
     std::printf("- Program finished :) -\n");
 
