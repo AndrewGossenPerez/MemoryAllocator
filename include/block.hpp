@@ -10,7 +10,7 @@ struct Block{
     std::size_t size; // The size of the block 
     // inclusive of the header, payload and the footer 
     bool allocated;
-    // Pointers to adjacent free blocks for coalescing 
+    // Links in the free list when this block isnt allocated 
     Block* prevFree;
     Block* nextFree;
 
@@ -24,14 +24,19 @@ struct Footer{
 
 static constexpr std::size_t ALIGN=alignof(std::max_align_t);
 
-static std::size_t align(std::size_t x) {
+static std::size_t minBlockSize() {
+    // Get the minimum block size of the heap to validate bytes parameter for heap 
+    return sizeof(Block) + ALIGN + sizeof(Footer);
+}
+
+static std::size_t alignMax(std::size_t x) {
     // Round up x to nearest multiple of the maximum allingment
     return (x + (ALIGN - 1)) & ~(ALIGN - 1);
 }
 
 static std::size_t getSize(std::size_t payloadBytes) {
     // Returns the net size required for a block with payloadBytes size 
-    payloadBytes=align(payloadBytes); // Again, must align the payLoadbytes 
+    payloadBytes=alignMax(payloadBytes); // Again, must align the payLoadbytes 
     // to avoid unneccesary CPU ticks or UB 
     return sizeof(Block)+payloadBytes+sizeof(Footer);
 }
