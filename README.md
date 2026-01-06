@@ -6,7 +6,7 @@
 **This project implements an OS-backed memory allocator that creates my own heap using virtual memory through the mmap system call.**
 ---
 
-The heap is managed with RAII. The constructor maps the requested heap size (which is rounded up to a page-aligned size), and the destructor unmaps it with munmap.
+The custom heap is managed with RAII. The constructor maps the requested heap size (which is rounded up to a page-aligned size), and the destructor unmaps it with munmap.
 
 The heap consists of blocks, following this architecture : Block Header - Payload - Block Footer. Where header stores the block's metadata, and footer stores the block's size to easily access headers in O(1) time complexity. 
 
