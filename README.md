@@ -1,9 +1,5 @@
 
-<img width="200" height="200" alt="MemIcon" src="https://github.com/user-attachments/assets/2585629f-e415-4fc3-a329-63f252981cb1" />
-
-(AndrewG MemoryAllocator)
-
-**This project implements an OS-backed memory allocator that creates my own heap using virtual memory through the mmap system call.**
+This project implements an OS-backed memory allocator that creates my own heap using virtual memory through the mmap system call.
 ---
 
 The custom heap is managed with RAII. The constructor maps the requested heap size (which is rounded up to a page-aligned size), and the destructor unmaps it with munmap.
