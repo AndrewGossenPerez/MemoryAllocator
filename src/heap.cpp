@@ -1,10 +1,11 @@
-#include "include/heap.hpp"
+#include "heap.hpp"
 #include <cstddef>
 
 void* Heap::alloc(std::size_t bytes,AllocationPriority priorityType){
 
-    // Allocates bytes amount of the heap, auto aligned       
-                              
+    static_assert(sizeof(Block) % ALIGN == 0, "Block isnt aligned");
+
+    // Allocate a payload of 'bytes', automatically aligned.
     if (bytes == 0 || !m_base) return nullptr;
     std::size_t requiredBytes= getSize(bytes);
 
@@ -22,7 +23,6 @@ void* Heap::alloc(std::size_t bytes,AllocationPriority priorityType){
     } else if (priorityType==AllocationPriority::BestFit){
 
         // Always going to be O(n) since it will have to search through entire free list 
-        
         for (Block* b=m_freeHead;b;b=b->nextFree){
             // Go through each block in the free list 
             if (b->size>=requiredBytes){
@@ -58,10 +58,8 @@ void* Heap::alloc(std::size_t bytes,AllocationPriority priorityType){
         writeFooter(remainder); // Mark the end of the new freely made block
         pushFree(remainder);
 
-    } else { 
-        // Otherwise can't split so full block will be allocated, which is already done 
-    } 
-
+    }  // Otherwise can't split so full block will be allocated, which is already done 
+    
     current->allocated = true;
     writeFooter(current); // Mark end of the allocated block 
     return reinterpret_cast<std::uint8_t*>(current) + sizeof(Block); // return pointer to the payload
@@ -75,7 +73,7 @@ void Heap::release(void* ptr){
     if (!ptr) return;
     if (!m_base) return;
 
-    auto* b = reinterpret_cast<Block*>( // Locate the footer of the block
+    auto* b = reinterpret_cast<Block*>( // Locate the header of the block
         reinterpret_cast<std::uint8_t*>(ptr) - sizeof(Block)
     );
 
@@ -92,51 +90,45 @@ void Heap::release(void* ptr){
 
     b->allocated = false;
 
-    // Attempt to coaelasce with next block, i.e. merge this newly freed block with next block 
-    Block* next = nullptr;
+    { // Attempt to coalesce with next block
 
-    { // Attempt to merge with next block 
-        auto* nextBlock = reinterpret_cast<std::uint8_t*>(b)+ b->size;
+        auto* nextBlock = reinterpret_cast<std::uint8_t*>(b) + b->size;
+
         if (nextBlock < m_end) {
-            next = reinterpret_cast<Block*>(nextBlock);
+            auto* next = reinterpret_cast<Block*>(nextBlock);
             if (!next->allocated) {
-
-                // Remove the next block to merge 
                 removeFree(next);
-                //Merge b with this next block 
-                b->size+=next->size;
-                writeFooter(b); // Mark the end of b now that size has been adjusted 
-
+                b->size += next->size;
+                writeFooter(b);
             }
         }
     }
 
-    { // Attempt to coaelasce with previous block
+    { // Attempt to coalesce with previous block
 
-        auto* base=reinterpret_cast<std::uint8_t*>(b);
+        auto* base = reinterpret_cast<std::uint8_t*>(b);
 
-        if (base>m_base){ // The footer of the previous block is right before the header of Block b
-            // as b is not the first free block in the free list 
+        if (base > m_base) { // b is not the first block in the heap
 
-            auto* prevFooter=reinterpret_cast<Footer*>(base-sizeof(Footer));
+            auto* prevFooter = reinterpret_cast<Footer*>(base - sizeof(Footer));
             std::size_t prevSize = prevFooter->size;
-            auto* prevBase = base-prevSize;
 
-            if (prevBase>=m_base){ // Ensure the previous block falls within heap range 
-                Block* prev=reinterpret_cast<Block*>(prev);
-                if (!prev->allocated && prev->size==prevSize ){// Ensure unallocated and size is unchanged 
+            if (prevSize >= minBlockSize() &&
+                prevSize <= static_cast<std::size_t>(base - m_base)) {
+
+                auto* prevBase = base - prevSize;
+                Block* prev = reinterpret_cast<Block*>(prevBase);
+
+                if (!prev->allocated && prev->size == prevSize) {
                     removeFree(prev);
                     prev->size += b->size;
-                    writeFooter(prev); // Mark the end of the new merged prev
-                    b=prev; // THe new free block is now prev as it's merged with b 
-                } 
-
+                    writeFooter(prev);
+                    b = prev;
+                }
             }
+        }
 
-        } 
-
-        pushFree(b); // Add BLock b to the free list 
-
+        pushFree(b);
     }
 
 }

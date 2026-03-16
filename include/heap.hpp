@@ -8,26 +8,31 @@
 #include <cstring>
 #include <sys/mman.h>   
 #include <unistd.h>    
-#include "include/block.hpp" 
+#include "block.hpp" 
 
 // Enum for choosing which allocation priority to run an allocation with 
-enum AllocationPriority{
-    FirstFit,BestFit
+enum class AllocationPriority{
+    FirstFit,
+    BestFit
 };
-
 
 // ---- Helper functions 
 
-static std::size_t pageSize() {
-    // Get the page-size for this system
+inline std::size_t pageSize() {
+
+    // Get the page-size for this system (POSIX)
+
     long ps = ::sysconf(_SC_PAGESIZE);
     if (ps <= 0) return 4096; 
-    return (std::size_t)ps;
+    return static_cast<std::size_t>(ps);
+
 }
 
-static std::size_t align(std::size_t x, std::size_t a) {
-    // Round x to the nearest multiple of a 
+inline std::size_t align(std::size_t x, std::size_t a) {
+
+    //Round x up to the next multiple of a, assuming a is a power of 2
     return (x + (a - 1)) & ~(a - 1);
+
 }
 
 // ---- RAII Heap structure 
@@ -51,10 +56,9 @@ public:
         }
 
         std::size_t ps = pageSize(); // Get the size of each page for the current system
-        bytes = align(bytes,ps); // Ensure that we align bytes to the page size 
-        // This is so we ensure the entire heap has an integer amount of pages 
+        bytes = align(bytes,ps);  // Round bytes up to the page size so the heap spans a whole number of pages
 
-        // Reserve the new aligned bytes as virtual memory, using mmap directly 
+        // Reserve aligned virtual memory for the heap using mmap
         void* p = ::mmap(nullptr,bytes,PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS,-1,0);
         
         if (p==MAP_FAILED){
@@ -67,12 +71,12 @@ public:
             return;
         } 
 
-        m_base = static_cast<std::uint8_t*>(p); // Cast untyped pointer p to a byte pointer so we can 
-        // perform byte level pointer arithmetic, this is the base i.e. start of the heap ( first mem address )   
-        m_size=bytes;
-        m_end=m_base+m_size;
+        m_base = static_cast<std::uint8_t*>(p); // This is the base i.e. start of the heap (first memory address)   
+        m_size = bytes;
+        m_end = m_base + m_size;
 
         // The whole heap will be one block at first, and it will split per allocation
+
         m_freeHead= reinterpret_cast<Block*>(m_base);
         m_freeHead->size= m_size;
         m_freeHead->allocated = false;
@@ -94,7 +98,7 @@ public:
 
     Heap(Heap&& other) noexcept : m_size(other.m_size),m_base(other.m_base),
     m_end(other.m_end),m_freeHead(other.m_freeHead){
-        // Leave the other heap in a valid state 
+        // Leave the other heap in an empty & valid state 
         other.m_size=0;
         other.m_base=nullptr;
         other.m_end=nullptr;
@@ -104,6 +108,7 @@ public:
     Heap& operator=(Heap&& other) noexcept {
 
         if (this != &other) { 
+
             // Unmap the current base 
             if (m_base) ::munmap(m_base, m_size);
 
@@ -112,7 +117,7 @@ public:
             m_end=other.m_end;
             m_freeHead=other.m_freeHead;
 
-            // Leave the other heap in a valid state 
+            // Leave the other heap in an empty & valid state 
             other.m_size=0;
             other.m_base=nullptr;
             other.m_end=nullptr;
@@ -135,7 +140,7 @@ public:
             std::printf("Block %p size: %zu %s\n",(void*)b, b->size, b->allocated ? "ALLOCATED" : "FREE");
             p += b->size;
     }}
-
+    
 private:
 
     std::size_t m_size= 0;
