@@ -1,36 +1,55 @@
+## A simple memory allocator
 
+This learning project implements a custom memory allocator that manages its own heap using virtual memory obtained through the mmap system call.
 
-This learning project implements a memory allocator that creates my own heap using virtual memory through the mmap system call.
+The heap is managed with RAII. The constructor maps the requested heap size (rounded up to a page-aligned size). The destructor releases the mapping using munmap.
 
-The custom heap is managed with RAII. The constructor maps the requested heap size (which is rounded up to a page-aligned size), and the destructor unmaps it with munmap.
+Memory is organised into blocks with the following layout:
 
-The heap consists of blocks, following this architecture : Block Header - Payload - Block Footer. Where header stores the block's metadata, and footer stores the block's size to easily access headers in O(1) time complexity. 
+- **Header** – stores metadata about the block (size, allocation status, free-list pointers).
+- **Footer** – mirrors the block size so the previous block can be located in **O(1)** time during coalescing.
 
 ---
-**Benchmark results against the standard malloc/free functions are as follows:**
+## Allocation Strategies
+
+### First-Fit
+- Selects the first block large enough
+- Terminates search early
+- Lower overhead under fragmentation
+
+### Best-Fit
+- Selects the smallest suitable block
+- Requires scanning entire free list
+- Better theoretical space utilisation
 
 ---
 
- FIRST-FIT ( 10,000 iterations with 10,000 operations )
- ---
+## Benchmark Results vs `malloc` / `free`
 
- 
- Immediate Allocation/Deallocation (Throughput) - 1.66x FASTER than malloc/free
- 
+Benchmarks were run using randomized allocation sizes between **8–512 bytes**, with multiple trials and median reporting.
 
- Allocation/Deallocation with fragmentation present - 1.31x FASTER than malloc/free 
+| Configuration | Iterations | Operations / Iteration |
+|---------------|-----------|------------------------|
+| Benchmark Setup | 2,000 | 2,000 |
 
-
- 
- BEST-FIT ( 10,000 iterations with 1,000 operations ) 
 ---
- 
- Immediate Allocation/Deallocation (Throughput) - 1.688x FASTER than malloc/free
- 
- Allocation/Deallocation with fragmentation present - 4.85x SLOWER than malloc/free 
 
+## First-Fit Allocation Policy
 
+| Test Scenario | Result vs `malloc/free` |
+|---------------|------------------------|
+| Immediate Allocation / Deallocation | **11.42× faster** |
+| Bulk Allocation / Deallocation | **5.00× faster** |
+| Fragmented Allocation / Deallocation | **1.99× faster** |
 
+---
 
- 
+## Best-Fit Allocation Policy
 
+| Test Scenario | Result vs `malloc/free` |
+|---------------|------------------------|
+| Immediate Allocation / Deallocation | **8.89× faster** |
+| Bulk Allocation / Deallocation | **5.71× faster** |
+| Fragmented Allocation / Deallocation | **15.4× slower** |
+
+---
