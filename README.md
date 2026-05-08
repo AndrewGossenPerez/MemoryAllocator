@@ -13,14 +13,10 @@ Memory is organised into blocks with the following layout:
 ## Allocation Strategies
 
 ### First-Fit
-- Selects the first block large enough
-- Terminates search early
-- Lower overhead under fragmentation
+- Selects the first block large enough, terminates search early, with the benefit of lower overhead under fragmentation
 
 ### Best-Fit
-- Selects the smallest suitable block
-- Requires scanning entire free list
-- Better theoretical space utilisation
+- Selects the smallest suitable block, requires scanning entire free list, with better theoretical space utilisation
 
 ---
 
