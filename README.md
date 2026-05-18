@@ -23,6 +23,8 @@ Memory is organised into blocks with the following layout:
 ## Benchmark Results vs `malloc` / `free`
 
 On the Macbook M3 Pro Chip 
+
+
 Benchmarks were run using randomized allocation sizes between **8–512 bytes**, with multiple trials and median reporting.
 
 | Configuration | Iterations | Operations / Iteration |
